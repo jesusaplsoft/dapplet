@@ -8,6 +8,9 @@ import java.awt.Font;
 import java.awt.HeadlessException;
 import java.awt.Image;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
@@ -61,7 +64,7 @@ public class GetDniE
      */
     public void initComponents() {
         this.getContentPane().setLayout(new BorderLayout(0, 0));
-        this.setSize(width, height);
+        this.setSize(this.width, this.height);
 
         final JPanel panelNorte = new JPanel();
         this.getContentPane().add(panelNorte, BorderLayout.NORTH);
@@ -72,13 +75,20 @@ public class GetDniE
         lblLogo.setPreferredSize(new Dimension(200, 200));
         lblLogo.setHorizontalAlignment(SwingConstants.LEFT);
         lblLogo.setVerticalAlignment(SwingConstants.TOP);
-        lblLogo.setIcon(this.getImageIcon("/com/apl/partymat/tools/logo.jpg",
-                lblLogo.getPreferredSize().width,
-                lblLogo.getPreferredSize().height));
+
+        try {
+            lblLogo.setIcon(this.getImageIcon("/resources/logo.jpg",
+                    lblLogo.getPreferredSize().width,
+                    lblLogo.getPreferredSize().height));
+        } catch (final Exception e) {
+            System.err.println("Error: " + e.getLocalizedMessage());
+            e.printStackTrace();
+        }
+
         panelNorte.add(lblLogo);
 
         final JLabel lblTitle = new JLabel(
-                "<html>Autenticación de usuario<br/> mediante Dni Electrónico");
+                "<html>Autenticaci\u00F3n de usuario<br/> mediante Dni Electr\u00F3nico");
         lblTitle.setDoubleBuffered(true);
         lblTitle.setFont(new Font("Tahoma", Font.PLAIN, 34));
         lblTitle.setHorizontalAlignment(SwingConstants.RIGHT);
@@ -181,10 +191,13 @@ public class GetDniE
      * @param   height  alto nuevo
      *
      * @return  imagen procesada
+     *
+     * @throws  MalformedURLException
      */
     protected ImageIcon getImageIcon(final String imagen,
             final int width,
-            final int height) {
+            final int height)
+            throws MalformedURLException {
         // carga la imagen en un ImageIcon
         final ImageIcon imageIcon = new ImageIcon(GetDniE.class.getResource(
                     imagen));
@@ -195,6 +208,20 @@ public class GetDniE
                 java.awt.Image.SCALE_SMOOTH);
         // transforma de vuelta
         return new ImageIcon(newimg);
+    }
+
+    private URL getURL(final String filename) {
+        URL url = null;
+
+        try {
+            url = this.getClass().getResource("" + filename);
+        }
+        // catch (MalformedURLException e) { e.printStackTrace(); }
+        catch (final Exception e) {
+        }
+
+        System.err.println("Imagen: " + url.toString());
+        return url;
     }
 
     /**

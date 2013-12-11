@@ -9,40 +9,37 @@
 <!--                                           -->
 <title>Applet Test</title>
 
-<!--                                           -->
-<!-- This script loads your compiled module.   -->
-<!-- If you add any GWT meta tags, they must   -->
-<!-- be added before this line.                -->
-<!--                                           -->
-<script type="text/javascript" language="javascript"
-  src="partymat/partymat.nocache.js"></script>
 </head>
 
 <body>
 
-  <script src="https://www.java.com/js/deployJava.js"
-    type="text/javascript">
-      
-    </script>
-  <script type="text/javascript">
+  <script language="Javascript">
       //<![CDATA[
-      var attributes = {
-        archive : 'lib/dniE.jar,lib/bcprov-jdk16-146.jar',
-        codebase : 'http://docs.oracle.com/javase/tutorialJWS/samples/uiswing/TumbleItemProject',
-        code : 'com.apl.partymat.tools.GetDniE',
-        width : '640',
-        height : '380'
-      };
-      var parameters = {
-        permissions : 'sandbox',
-        dir : '.',
-        width : '640',
-        width : '380'
-      };
-      deployJava.runApplet(attributes, parameters, '1.7');
+      var _app = navigator.appName;
+
+      if (_app == 'Netscape') {
+        document
+            .write('<embed code="com.apl.partymat.tools.GetDniE"',
+                   'archive="lib/dniEapplet-2.0.0.jar,lib/bcprov-jdk16-143.jar,lib/miglayout-3.7.4.jar"',
+                   'width="640"',
+                   'height="380"',
+                   'type="application/x-java-applet;version=1.7">');
+      } else if (_app == 'Microsoft Internet Explorer') {
+        document
+            .write(
+                '<OBJECT ',
+                   'classid="clsid:8AD9C840-044E-11D1-B3E9-00805F499D93"',
+                   'archive="lib/dniEapplet-2.0.0.jar,lib/bcprov-jdk16-143.jar,lib/miglayout-3.7.4.jar"',
+                   'width="640"',
+                   'height="380">',
+                '<PARAM name="code" value="com.apl.partymat.tools.GetDniE">',
+                '</OBJECT>');
+      } else {
+        var result=""
+        document.write('<p>Lo siento, navegador ' + _app + ' no soportado</p>');
+      }
       //]]>
     </script>
-
   <noscript>
     <div
       style="width: 22em; position: absolute; left: 50%; margin-left: -11em; color: red; background-color: white; border: 1px solid red; padding: 4px; font-family: sans-serif">Tu
