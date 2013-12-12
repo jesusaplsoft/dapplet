@@ -2,8 +2,6 @@ package com.apl.partymat.tools;
 
 import net.miginfocom.swing.MigLayout;
 
-import org.bouncycastle.util.encoders.Base64;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
@@ -373,10 +371,9 @@ public class GetDniE
     }
 
     private void getRFC() {
-        String alias = null;
 
         try {
-            alias = this.libAutDNIe.cargarAliasCertificadoAutenticacionDNIe();
+            this.libAutDNIe.cargarAliasCertificadoAutenticacionDNIe();
         } catch (final Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -387,13 +384,13 @@ public class GetDniE
             System.out.println("reto " + this.reto);
             /* Realización de la firma del reto usando el certificado de
              * autenticación seleccionado por el usuario */
-            this.firma = this.libAutDNIe.autenticacionDNIe(this.reto, alias);
-            System.out.println("firma " + this.firma);
+// this.firma = this.libAutDNIe.autenticacionDNIe(this.reto, alias);
+// System.out.println("firma " + this.firma);
 
             /* Obtención del certificado de autenticación del usuario */
-            this.certificado = new String(Base64.encode(
-                        this.libAutDNIe.obtenerCertificadoAutenticacionDNIe(
-                            alias)));
+// this.certificado = new String(Base64.encode(
+// this.libAutDNIe.obtenerCertificadoAutenticacionDNIe(
+// alias)));
             System.out.println("cerfificado " + this.certificado);
 
         } catch (final Exception ex) {

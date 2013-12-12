@@ -1,7 +1,5 @@
 package com.apl.partymat.tools;
 
-import org.bouncycastle.util.encoders.Base64;
-
 import java.io.IOException;
 
 import java.security.AccessController;
@@ -288,22 +286,22 @@ public class AppletAutenticacionDNIeGUI
              */
             private void aliasBotonActionPerformed(
                     final java.awt.event.ActionEvent evt) {
-                final String alias = (String) this.aliasCombo.getSelectedItem();
+                this.aliasCombo.getSelectedItem();
 
                 /* Inicialización de los objetos firma y certificado */
                 try {
                     System.out.println("reto " + this.reto);
                     /* Realización de la firma del reto usando el certificado de
                      * autenticación seleccionado por el usuario */
-                    this.firma = this.libAutDNIe.autenticacionDNIe(this.reto,
-                            alias);
-                    System.out.println("firma " + this.firma);
+// this.firma = this.libAutDNIe.autenticacionDNIe(this.reto,
+// alias);
+// System.out.println("firma " + this.firma);
 
                     /* Obtención del certificado de autenticación del usuario */
-                    this.certificado = new String(Base64.encode(
-                                this.libAutDNIe
-                                    .obtenerCertificadoAutenticacionDNIe(
-                                        alias)));
+// this.certificado = new String(Base64.encode(
+// this.libAutDNIe
+// .obtenerCertificadoAutenticacionDNIe(
+// alias)));
                     System.out.println("cerfificado " + this.certificado);
 
                 } catch (final Exception ex) {

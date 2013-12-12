@@ -1,0 +1,39 @@
+﻿<!doctype html>
+
+<html>
+<head>
+<title>Applet Test</title>
+
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+<script language="JavaScript">
+<!--
+  function pass() {
+    document.appDniE.setPin(document.a.in0.value);
+    document.a.out0.value = document.appDniE.getResult();
+  }
+//-->
+</script>
+
+</head>
+
+<body>
+  <noscript>
+    <div
+      style="width: 22em; position: absolute; left: 50%; margin-left: -11em; color: red; background-color: white; border: 1px solid red; padding: 4px; font-family: sans-serif">Tu
+      navegador Web tiene que tener activado JavaScript para que esta
+      aplicación funcione correctamente.</div>
+  </noscript>
+
+  <h1>Applet Test</h1>
+
+
+  <APPLET name="appDniE" code="com.apl.partymat.tools.AppletDniE" width="100"
+    height="30" archive="lib/dniEapplet-2.0.0.jar,lib/sunpkcs11.jar"> </APPLET>
+  <form name="a" action="x.htm">
+    <input type="text" name="in0" />
+    <input type="text" name="out0" size="150">
+    <input type="button" value="Enviar" onClick="pass();" />
+  </form>
+</body>
+</html>

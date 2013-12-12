@@ -1,28 +1,12 @@
 package com.apl.partymat.tools;
 
-import org.bouncycastle.ocsp.BasicOCSPResp;
-import org.bouncycastle.ocsp.CertificateID;
-import org.bouncycastle.ocsp.OCSPReq;
-import org.bouncycastle.ocsp.OCSPReqGenerator;
-import org.bouncycastle.ocsp.OCSPResp;
-import org.bouncycastle.ocsp.SingleResp;
-
-import org.bouncycastle.util.encoders.Base64;
-
-import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-
-import java.net.HttpURLConnection;
-import java.net.URL;
 
 import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.Security;
-import java.security.Signature;
 import java.security.cert.X509Certificate;
 
 import java.util.Enumeration;
@@ -88,8 +72,23 @@ public class LibreriaAutenticacionDNIe {
                 "name = OpenSC\nlibrary = /Library/OpenSC/lib/opensc-pkcs11.so\n";
         }
 
-        LibreriaAutenticacionDNIe.pkcs11 = new ByteArrayInputStream(
-                configuracionPKCS11.getBytes());
+        try {
+            LibreriaAutenticacionDNIe.pkcs11 = new ByteArrayInputStream(
+                    configuracionPKCS11.getBytes());
+        } catch (final Exception ex) {
+
+            // Si el navegador es de 32 bits y no lo ha encontrado, cambia
+            // a 64 bits y busca por si el SO es de 64 bits.
+            if ((osNombre.contains(new StringBuffer("Windows")))
+                    && (osArquitectura.toLowerCase().contains("x86"))) {
+                configuracionPKCS11 =
+                    "name = DNIe\nlibrary = C:\\Windows\\SysWoW64\\UsrPkcs11.dll\n";
+                LibreriaAutenticacionDNIe.pkcs11 = new ByteArrayInputStream(
+                        configuracionPKCS11.getBytes());
+            } else {
+                throw ex;
+            }
+        }
 
         System.out.println("--- path config: " + configuracionPKCS11);
     }
@@ -117,7 +116,7 @@ public class LibreriaAutenticacionDNIe {
                     LibreriaAutenticacionDNIe.pkcs11);
         } catch (final Exception ex) {
             throw new Exception(ex.getMessage()
-                + ": No existe el módulo PKCS11.");
+                + ": No existe el m\u00F3dulo PKCS11.");
         }
 
         System.out.println("Añadiendo el proveedor");
@@ -246,38 +245,38 @@ public class LibreriaAutenticacionDNIe {
      *
      * @throws  Exception  por error
      */
-    public String autenticacionDNIe(final String data, final String alias)
-            throws Exception {
-        // Se descodifica el reto a firmar
-        final byte[] retoAFirmar = Base64.decode(data);
-
-        // Se comprueba el estado del certificado para verificar que es válido
-        final java.security.cert.Certificate[] chain =
-            LibreriaAutenticacionDNIe.keyStore.getCertificateChain(alias);
-
-        if (this.obtenerRespuestaOCSP(alias, (X509Certificate) chain[1])
-                != LibreriaAutenticacionDNIe.GOOD) {
-            return null;
-        }
-
-        // Se firma el reto enviado por el servidor
-        Signature jsig = null;
-
-        jsig = Signature.getInstance("SHA1withRSA",
-                LibreriaAutenticacionDNIe.keyStore.getProvider());
-        LibreriaAutenticacionDNIe.prKey = (PrivateKey)
-            LibreriaAutenticacionDNIe.keyStore.getKey(alias,
-                LibreriaAutenticacionDNIe.userPIN.toCharArray());
-        jsig.initSign(LibreriaAutenticacionDNIe.prKey);
-        jsig.update(retoAFirmar);
-
-        // Se codifica el reto firmado
-        final String retoFirmado = new String(Base64.encode(jsig.sign()));
-
-        System.out.println("--- firma realizada.");
-
-        return retoFirmado;
-    }
+// public String autenticacionDNIe(final String data, final String alias)
+// throws Exception {
+// // Se descodifica el reto a firmar
+// final byte[] retoAFirmar = Base64.decode(data);
+//
+// // Se comprueba el estado del certificado para verificar que es válido
+// final java.security.cert.Certificate[] chain =
+// LibreriaAutenticacionDNIe.keyStore.getCertificateChain(alias);
+//
+// if (this.obtenerRespuestaOCSP(alias, (X509Certificate) chain[1])
+// != LibreriaAutenticacionDNIe.GOOD) {
+// return null;
+// }
+//
+// // Se firma el reto enviado por el servidor
+// Signature jsig = null;
+//
+// jsig = Signature.getInstance("SHA1withRSA",
+// LibreriaAutenticacionDNIe.keyStore.getProvider());
+// LibreriaAutenticacionDNIe.prKey = (PrivateKey)
+// LibreriaAutenticacionDNIe.keyStore.getKey(alias,
+// LibreriaAutenticacionDNIe.userPIN.toCharArray());
+// jsig.initSign(LibreriaAutenticacionDNIe.prKey);
+// jsig.update(retoAFirmar);
+//
+// // Se codifica el reto firmado
+// final String retoFirmado = new String(Base64.encode(jsig.sign()));
+//
+// System.out.println("--- firma realizada.");
+//
+// return retoFirmado;
+// }
 
     /**
      * Retorna el certificado de autenticación del usuario para que el servidor
@@ -290,13 +289,13 @@ public class LibreriaAutenticacionDNIe {
      *
      * @throws  Exception  por error
      */
-    public byte[] obtenerCertificadoAutenticacionDNIe(final String alias)
-            throws Exception {
-        // Se necesita el certificado del usuario para comprobar la firma del
-        // reto
-        return LibreriaAutenticacionDNIe.keyStore.getCertificate(alias)
-            .getEncoded();
-    }
+// public byte[] obtenerCertificadoAutenticacionDNIe(final String alias)
+// throws Exception {
+// // Se necesita el certificado del usuario para comprobar la firma del
+// // reto
+// return LibreriaAutenticacionDNIe.keyStore.getCertificate(alias)
+// .getEncoded();
+// }
 
     /**
      * Método que comprueba el estado de revocación del certificado con el que
@@ -313,62 +312,62 @@ public class LibreriaAutenticacionDNIe {
      *
      * @throws  Exception  por error
      */
-    private int obtenerRespuestaOCSP(final String alias,
-            final X509Certificate certificadoRaiz)
-            throws Exception {
-        final X509Certificate cert = (X509Certificate)
-            LibreriaAutenticacionDNIe.keyStore.getCertificate(alias);
-
-        Security.addProvider(
-            new org.bouncycastle.jce.provider.BouncyCastleProvider());
-
-        // Se genera la petición OCSP
-        final OCSPReqGenerator ocspReqGen = new OCSPReqGenerator();
-
-        final CertificateID certid = new CertificateID(CertificateID.HASH_SHA1,
-                certificadoRaiz, cert.getSerialNumber());
-        ocspReqGen.addRequest(certid);
-
-        final OCSPReq ocspReq = ocspReqGen.generate();
-
-        final URL url = new URL("http://ocsp.dnie.es");
-        final HttpURLConnection con = (HttpURLConnection) url.openConnection();
-
-        con.setRequestProperty("Content-Type", "application/ocsp-request");
-        con.setRequestProperty("Accept", "application/ocsp-response");
-        con.setDoOutput(true);
-
-        final OutputStream out = con.getOutputStream();
-        final DataOutputStream dataOut = new DataOutputStream(
-                new BufferedOutputStream(out));
-
-        dataOut.write(ocspReq.getEncoded());
-        dataOut.flush();
-        dataOut.close();
-
-        final InputStream in = con.getInputStream();
-
-        // Se obtiene la respuesta del servidor
-        final BasicOCSPResp basicResp = (BasicOCSPResp)
-            new OCSPResp(in).getResponseObject();
-
-        con.disconnect();
-        out.close();
-        in.close();
-
-        // Estado de los certificados a validar: GOOD, REVOKED o UKNOWN
-        for (final SingleResp singResp : basicResp.getResponses()) {
-            final Object status = singResp.getCertStatus();
-
-            if (status instanceof org.bouncycastle.ocsp.UnknownStatus) {
-                return LibreriaAutenticacionDNIe.UNKNOWN_STATUS;
-            } else if (status instanceof org.bouncycastle.ocsp.RevokedStatus) {
-                return LibreriaAutenticacionDNIe.REVOKED_STATUS;
-            } else {
-                return LibreriaAutenticacionDNIe.GOOD;
-            }
-        }
-
-        return -1;
-    }
+// private int obtenerRespuestaOCSP(final String alias,
+// final X509Certificate certificadoRaiz)
+// throws Exception {
+// final X509Certificate cert = (X509Certificate)
+// LibreriaAutenticacionDNIe.keyStore.getCertificate(alias);
+//
+// Security.addProvider(
+// new org.bouncycastle.jce.provider.BouncyCastleProvider());
+//
+// // Se genera la petición OCSP
+// final OCSPReqGenerator ocspReqGen = new OCSPReqGenerator();
+//
+// final CertificateID certid = new CertificateID(CertificateID.HASH_SHA1,
+// certificadoRaiz, cert.getSerialNumber());
+// ocspReqGen.addRequest(certid);
+//
+// final OCSPReq ocspReq = ocspReqGen.generate();
+//
+// final URL url = new URL("http://ocsp.dnie.es");
+// final HttpURLConnection con = (HttpURLConnection) url.openConnection();
+//
+// con.setRequestProperty("Content-Type", "application/ocsp-request");
+// con.setRequestProperty("Accept", "application/ocsp-response");
+// con.setDoOutput(true);
+//
+// final OutputStream out = con.getOutputStream();
+// final DataOutputStream dataOut = new DataOutputStream(
+// new BufferedOutputStream(out));
+//
+// dataOut.write(ocspReq.getEncoded());
+// dataOut.flush();
+// dataOut.close();
+//
+// final InputStream in = con.getInputStream();
+//
+// // Se obtiene la respuesta del servidor
+// final BasicOCSPResp basicResp = (BasicOCSPResp)
+// new OCSPResp(in).getResponseObject();
+//
+// con.disconnect();
+// out.close();
+// in.close();
+//
+// // Estado de los certificados a validar: GOOD, REVOKED o UKNOWN
+// for (final SingleResp singResp : basicResp.getResponses()) {
+// final Object status = singResp.getCertStatus();
+//
+// if (status instanceof org.bouncycastle.ocsp.UnknownStatus) {
+// return LibreriaAutenticacionDNIe.UNKNOWN_STATUS;
+// } else if (status instanceof org.bouncycastle.ocsp.RevokedStatus) {
+// return LibreriaAutenticacionDNIe.REVOKED_STATUS;
+// } else {
+// return LibreriaAutenticacionDNIe.GOOD;
+// }
+// }
+//
+// return -1;
+// }
 }
