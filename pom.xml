@@ -1,14 +1,97 @@
-<project 
-  xmlns="http://maven.apache.org/POM/4.0.0" 
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd"
->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.apl.partymat</groupId>
   <artifactId>dniEapplet</artifactId>
   <packaging>jar</packaging>
   <version>2.0.0</version>
   <name>Applet para autenticar con DniE</name>
+  <repositories>
+    <repository>
+      <id>jboss-public-repository-group</id>
+      <name>JBoss Public Maven Repository Group</name>
+      <url>https://repository.jboss.org/nexus/content/groups/public/</url>
+      <layout>default</layout>
+      <releases>
+        <enabled>true</enabled>
+        <updatePolicy>never</updatePolicy>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+        <updatePolicy>never</updatePolicy>
+      </snapshots>
+    </repository>
+    <repository>
+      <id>aplsoftware</id>
+      <name>Aplsoftware Repository</name>
+      <url>http://www.aplsoftware.com/artifactory/repo</url>
+    </repository>
+    <!-- repository> <id>yoava</id> <name>AOL yoava</name> <url>http://yoava.artifactoryonline.com/yoava/repo</url>
+      </repository -->
+    <repository>
+      <id>springsource-repo</id>
+      <name>SpringSource Repository</name>
+      <url>http://repo.springsource.org/release</url>
+    </repository>
+    <repository>
+      <id>artifact</id>
+      <name>Repositorio de Maven Mvn</name>
+      <url>http://mvnrepository.com</url>
+    </repository>
+    <repository>
+      <id>mavenHub</id>
+      <name>Repositorio de MavenHub</name>
+      <url>http://mavenhub.com/mvn/central</url>
+    </repository>
+    <repository>
+      <id>maven</id>
+      <name>Repositorio de Maven</name>
+      <url>http://repo1.maven.org/maven2</url>
+    </repository>
+    <repository>
+      <id>search-maven</id>
+      <name>Repository from Maven Search</name>
+      <url>http://search.maven.org</url>
+    </repository>
+    <repository>
+      <id>ibiblio.org</id>
+      <url>http://mirrors.ibiblio.org/pub/mirrors/maven2</url>
+      <!-- United States, North Carolina -->
+    </repository>
+    <!-- repository> <id>ibiblio</id> <name>Ibiblio Repository</name> <url>http://www.ibiblio.org/maven2</url>
+      </repository -->
+    <repository>
+      <id>maven2-repository.dev.java.net</id>
+      <name>Java.net Repository for Maven</name>
+      <url>http://download.java.net/maven/2/</url>
+      <layout>default</layout>
+    </repository>
+    <repository>
+      <id>cedarsoft-thirdparty</id>
+      <url>http://maven.cedarsoft.com/content/repositories/thirdparty/</url>
+    </repository>
+  </repositories>
+  <pluginRepositories>
+    <pluginRepository>
+      <id>jboss-public-repository-group</id>
+      <name>JBoss Public Maven Repository Group</name>
+      <url>https://repository.jboss.org/nexus/content/groups/public/</url>
+      <layout>default</layout>
+      <releases>
+        <enabled>true</enabled>
+        <updatePolicy>never</updatePolicy>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+        <updatePolicy>never</updatePolicy>
+      </snapshots>
+    </pluginRepository>
+    <pluginRepository>
+      <id>maven2-repository.dev.java.net</id>
+      <name>Java.net Repository for Maven</name>
+      <url>http://download.java.net/maven/2/</url>
+    </pluginRepository>
+  </pluginRepositories>
   <build>
     <sourceDirectory>src/main/java</sourceDirectory>
     <testSourceDirectory>src/test/java</testSourceDirectory>
@@ -29,7 +112,7 @@
         <targetPath>./</targetPath>
         <directory>testResources</directory>
         <includes>
-          <include>**/*</include>          
+          <include>**/*</include>
         </includes>
       </testResource>
       <testResource>
@@ -69,7 +152,7 @@
         <version>2.4</version>
         <configuration>
           <archive>
-          <addMavenDescriptor>false</addMavenDescriptor>
+            <addMavenDescriptor>false</addMavenDescriptor>
             <index>true</index>
             <manifest>
               <addClasspath>false</addClasspath>
@@ -80,6 +163,11 @@
     </plugins>
   </build>
   <dependencies>
+    <dependency>
+      <groupId>sun.security</groupId>
+      <artifactId>sunpkcs11</artifactId>
+      <version>7u45</version>
+    </dependency>
     <dependency>
       <groupId>bouncycastle</groupId>
       <artifactId>bcprov-jdk16</artifactId>
