@@ -72,23 +72,8 @@ public class LibreriaAutenticacionDNIe {
                 "name = OpenSC\nlibrary = /Library/OpenSC/lib/opensc-pkcs11.so\n";
         }
 
-        try {
-            LibreriaAutenticacionDNIe.pkcs11 = new ByteArrayInputStream(
-                    configuracionPKCS11.getBytes());
-        } catch (final Exception ex) {
-
-            // Si el navegador es de 32 bits y no lo ha encontrado, cambia
-            // a 64 bits y busca por si el SO es de 64 bits.
-            if ((osNombre.contains(new StringBuffer("Windows")))
-                    && (osArquitectura.toLowerCase().contains("x86"))) {
-                configuracionPKCS11 =
-                    "name = DNIe\nlibrary = C:\\Windows\\SysWoW64\\UsrPkcs11.dll\n";
-                LibreriaAutenticacionDNIe.pkcs11 = new ByteArrayInputStream(
-                        configuracionPKCS11.getBytes());
-            } else {
-                throw ex;
-            }
-        }
+        LibreriaAutenticacionDNIe.pkcs11 = new ByteArrayInputStream(
+                configuracionPKCS11.getBytes());
 
         System.out.println("--- path config: " + configuracionPKCS11);
     }
