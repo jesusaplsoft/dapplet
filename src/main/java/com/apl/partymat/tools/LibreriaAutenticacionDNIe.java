@@ -10,6 +10,7 @@ import org.bouncycastle.ocsp.SingleResp;
 import org.bouncycastle.util.encoders.Base64;
 
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,7 +21,6 @@ import java.net.URL;
 
 import java.security.KeyStore;
 import java.security.PrivateKey;
-import java.security.Provider;
 import java.security.Security;
 import java.security.Signature;
 import java.security.cert.X509Certificate;
@@ -30,6 +30,7 @@ import java.util.Enumeration;
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
 
+import javax.security.auth.login.LoginException;
 import javax.security.auth.x500.X500Principal;
 
 
@@ -43,7 +44,8 @@ public class LibreriaAutenticacionDNIe {
     private static KeyStore keyStore;
     private static PrivateKey prKey;
     private static String userPIN;
-    private static Provider jceProvider = null;
+    private static InputStream pkcs11;
+    private static sun.security.pkcs11.SunPKCS11 sunpkcs11 = null;
 
     /**
      * Variables para indicar el estado del certificado.*
@@ -51,11 +53,45 @@ public class LibreriaAutenticacionDNIe {
     private static int GOOD = 0;
     private static int UNKNOWN_STATUS = 1;
     private static int REVOKED_STATUS = 2;
+// private static BouncyCastleProvider jceProvider;
 
     /**
      * Constructor de la clase.
      */
     public LibreriaAutenticacionDNIe() {
+        final String osNombre = System.getProperty("os.name");
+        final String osArquitectura = System.getProperty("os.arch");
+        String configuracionPKCS11 = null;
+
+        /*
+         * Configuramos el modulo PKCS#11 para el sistema operativo actual y el
+         * directorio donde se encuentran los certificados intermedios de la CA
+         */
+
+        // LINUX
+        if (osNombre.contains(new StringBuffer("Linux"))) {
+            configuracionPKCS11 =
+                "name = OpenSC\nlibrary = /usr/lib/opensc-pkcs11.so\n";
+        } // WINDOWS
+        else if (osNombre.contains(new StringBuffer("Windows"))) {
+
+            if (osArquitectura.toLowerCase().contains("x86")) {
+                configuracionPKCS11 =
+                    "name = DNIe\nlibrary = C:\\Windows\\System32\\UsrPkcs11.dll\n";
+            } else {
+                configuracionPKCS11 =
+                    "name = DNIe\nlibrary = C:\\Windows\\SysWoW64\\UsrPkcs11.dll\n";
+            }
+        } // MAC OS
+        else {
+            configuracionPKCS11 =
+                "name = OpenSC\nlibrary = /Library/OpenSC/lib/opensc-pkcs11.so\n";
+        }
+
+        LibreriaAutenticacionDNIe.pkcs11 = new ByteArrayInputStream(
+                configuracionPKCS11.getBytes());
+
+        System.out.println("--- path config: " + configuracionPKCS11);
     }
 
     /**
@@ -71,27 +107,34 @@ public class LibreriaAutenticacionDNIe {
 
         // Inicializa el proveedor de JCE
         try {
-            LibreriaAutenticacionDNIe.jceProvider =
-                new org.bouncycastle.jce.provider.BouncyCastleProvider();
+// LibreriaAutenticacionDNIe.jceProvider =
+// new org.bouncycastle.jce.provider.BouncyCastleProvider();
+// LibreriaAutenticacionDNIe.jceProvider.load(
+// LibreriaAutenticacionDNIe.pkcs11);
+
+            LibreriaAutenticacionDNIe.sunpkcs11 =
+                new sun.security.pkcs11.SunPKCS11(
+                    LibreriaAutenticacionDNIe.pkcs11);
         } catch (final Exception ex) {
-            System.out.println(ex.getMessage()
+            throw new Exception(ex.getMessage()
                 + ": No existe el módulo PKCS11.");
-            throw ex;
         }
 
         System.out.println("Añadiendo el proveedor");
 
         // Se añade el proveedor en la siguiente posición disponibles
-        Security.addProvider(LibreriaAutenticacionDNIe.jceProvider);
+// Security.addProvider(LibreriaAutenticacionDNIe.jceProvider);
+        Security.addProvider(LibreriaAutenticacionDNIe.sunpkcs11);
 
         // Creación del objeto KeyStore con el tipo especificado.
         try {
+// LibreriaAutenticacionDNIe.keyStore = KeyStore.getInstance("PKCS11",
+// LibreriaAutenticacionDNIe.jceProvider);
             LibreriaAutenticacionDNIe.keyStore = KeyStore.getInstance("PKCS11",
-                    LibreriaAutenticacionDNIe.jceProvider);
+                    LibreriaAutenticacionDNIe.sunpkcs11);
         } catch (final Exception ex) {
-            System.out.println(ex.getMessage()
+            throw new Exception(ex.getMessage()
                 + ": No se puede instanciar el módulo PKCS11.");
-            throw ex;
         }
 
         System.out.println("Instancia creada");
@@ -116,10 +159,17 @@ public class LibreriaAutenticacionDNIe {
      */
     public void liberarAlmacenCertificados() {
 
-        LibreriaAutenticacionDNIe.jceProvider.clear();
-        Security.removeProvider(LibreriaAutenticacionDNIe.jceProvider
-            .getName());
-        System.out.println("keystore release");
+// LibreriaAutenticacionDNIe.jceProvider.clear();
+// Security.removeProvider(LibreriaAutenticacionDNIe.jceProvider
+// .getName());
+        try {
+            LibreriaAutenticacionDNIe.sunpkcs11.logout();
+            Security.removeProvider(LibreriaAutenticacionDNIe.sunpkcs11
+                .getName());
+            System.out.println("keystore release");
+        } catch (final LoginException ex) {
+            System.out.println("error: " + ex.getMessage());
+        }
     }
 
     /**
@@ -242,7 +292,8 @@ public class LibreriaAutenticacionDNIe {
      */
     public byte[] obtenerCertificadoAutenticacionDNIe(final String alias)
             throws Exception {
-        // Se necesita el certificado del usuario para comprobar la firma del reto
+        // Se necesita el certificado del usuario para comprobar la firma del
+        // reto
         return LibreriaAutenticacionDNIe.keyStore.getCertificate(alias)
             .getEncoded();
     }

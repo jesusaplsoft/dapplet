@@ -2,17 +2,26 @@ package com.apl.partymat.tools;
 
 import net.miginfocom.swing.MigLayout;
 
+import org.bouncycastle.util.encoders.Base64;
+
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.HeadlessException;
 import java.awt.Image;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import java.io.IOException;
 
 import java.net.MalformedURLException;
-import java.net.URL;
 
 import java.security.AccessController;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivilegedAction;
+import java.security.cert.CertificateException;
 
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
@@ -37,17 +46,17 @@ public class GetDniE
 
     private static final long serialVersionUID = 7217692140248075908L;
     private JPasswordField passwordField;
+    private JLabel lblError;
     // Parámetros pasados
-    String dir; // el directorio relativo a codebase
     int height; // altura del panel de contenido del applet
     int width; // anchura del panel de contenido del applet
+    int maxHeight; // Máx. altura del panel de contenido del applet
+    int maxWidth; // Máx. anchura del panel de contenido del applet
 
     private LibreriaAutenticacionDNIe libAutDNIe;
     private String firma;
     private String certificado;
-
-    private javax.swing.JPanel aliasPanel;
-    private javax.swing.JPanel okPanel;
+    private String reto;
 
     /**
      * Constructor del formulario.
@@ -56,14 +65,16 @@ public class GetDniE
      */
     public GetDniE()
             throws HeadlessException {
-        this.initComponents();
     }
 
     /**
      * Inicializa componentes gráficos.
+     *
+     * <p>Se llama desde <code>init()</code></p>
      */
     public void initComponents() {
-        this.getContentPane().setLayout(new BorderLayout(0, 0));
+        final Container contentPane = this.getContentPane();
+        contentPane.setLayout(new BorderLayout(0, 0));
         this.setSize(this.width, this.height);
 
         final JPanel panelNorte = new JPanel();
@@ -88,7 +99,8 @@ public class GetDniE
         panelNorte.add(lblLogo);
 
         final JLabel lblTitle = new JLabel(
-                "<html>Autenticaci\u00F3n de usuario<br/> mediante Dni Electr\u00F3nico");
+                "<html>Autenticaci\u00F3n de usuario<br/> "
+                + "mediante Dni Electr\u00F3nico");
         lblTitle.setDoubleBuffered(true);
         lblTitle.setFont(new Font("Tahoma", Font.PLAIN, 34));
         lblTitle.setHorizontalAlignment(SwingConstants.RIGHT);
@@ -113,17 +125,28 @@ public class GetDniE
         this.passwordField.setColumns(30);
         panelCentro.add(this.passwordField, "cell 8 0,alignx left,aligny top");
 
-        final JLabel lblError = new JLabel("");
-        panelCentro.add(lblError, "cell 8 2 2 1");
+        this.lblError = new JLabel("");
+        this.lblError.setForeground(Color.RED);
+        panelCentro.add(this.lblError, "cell 8 2 2 1");
 
         final JPanel panelSur = new JPanel();
         panelSur.getLayout();
         this.getContentPane().add(panelSur, BorderLayout.SOUTH);
 
         final JButton btnOk = new JButton("Ok");
+        btnOk.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(final ActionEvent e) {
+                    GetDniE.this.login();
+
+// if (GetDniE.this.lblError.getText().isEmpty())
+// contentPane.setVisible(false);
+                }
+            });
         btnOk.setDoubleBuffered(true);
         btnOk.setMnemonic('k');
         panelSur.add(btnOk);
+        this.passwordField.requestFocus();
     }
 
     /**
@@ -135,6 +158,7 @@ public class GetDniE
      */
     @Override
     public void init() {
+
         this.libAutDNIe = new LibreriaAutenticacionDNIe();
         this.loadAppletParameters();
 
@@ -192,7 +216,7 @@ public class GetDniE
      *
      * @return  imagen procesada
      *
-     * @throws  MalformedURLException
+     * @throws  MalformedURLException  por error
      */
     protected ImageIcon getImageIcon(final String imagen,
             final int width,
@@ -210,51 +234,53 @@ public class GetDniE
         return new ImageIcon(newimg);
     }
 
-    private URL getURL(final String filename) {
-        URL url = null;
-
-        try {
-            url = this.getClass().getResource("" + filename);
-        }
-        // catch (MalformedURLException e) { e.printStackTrace(); }
-        catch (final Exception e) {
-        }
-
-        System.err.println("Imagen: " + url.toString());
-        return url;
-    }
-
     /**
      * Carga parámetros del Applet.
+     *
+     * <p>Se llama desde <code>init()</code></p>
      */
     protected void loadAppletParameters() {
-        // Get the applet parameters.
-        String at = this.getParameter("dir");
-        at = this.getParameter("width");
-        this.width = (at != null) ? Integer.valueOf(at).intValue() : 0;
-        at = this.getParameter("height");
-        this.height = (at != null) ? Integer.valueOf(at).intValue() : 0;
+        String at = null;
+
+        try {
+            at = this.getParameter("width");
+            this.width = Integer.valueOf(at).intValue();
+        } catch (final Exception e) {
+            this.width = 640;
+        }
+
+        try {
+            at = this.getParameter("height");
+            this.height = Integer.valueOf(at).intValue();
+        } catch (final Exception e) {
+            this.height = 380;
+        }
+
+        try {
+            at = this.getParameter("maxwidth");
+            this.maxWidth = Integer.valueOf(at).intValue();
+        } catch (final Exception e) {
+            this.maxWidth = 800;
+        }
+
+        try {
+            at = this.getParameter("maxheigth");
+            this.maxHeight = Integer.valueOf(at).intValue();
+        } catch (final Exception e) {
+            this.maxHeight = 600;
+        }
 
     }
 
     /**
      * Método encargado de empezar el proceso de autenticación pasando el reto
      * del servidor.
-     *
-     * @param  datos  a procesar
      */
-    public void lanzarInterfaz(final String datos) {
+    public void lanzarInterfaz() {
         AccessController.doPrivileged(new PrivilegedAction<Object>() {
                 @Override
                 public Object run() {
-                    /* Se ocultan las vistas que todavía no deben visualizarse
-                     */
-                    GetDniE.this.aliasPanel.setVisible(false);
-                    GetDniE.this.okPanel.setVisible(false);
-
-                    /* Se muestra la el JApplet */
                     GetDniE.this.setVisible(true);
-
                     return null;
                 }
             });
@@ -292,5 +318,98 @@ public class GetDniE
         return new String[][] {
                 { "1", info }
             };
+    }
+
+    /**
+     * Método encargado de procesar el PIN del usuario y cargar su certificado
+     * de autenticación.
+     */
+    private void login() {
+
+        this.lblError.setText("");
+
+        final String pin = new String(this.passwordField.getPassword());
+
+        // El campo del PIN no puede estar vacío ni el PIN puede ser inferior
+        // a 4 cifras
+        if ((pin.compareTo("") == 0) || (pin.length() < 4)) {
+            /* Se lanza un mensaje de aviso al usuario */
+            this.lblError.setText("El PIN no puede ser vacio o menor que 4.");
+            this.passwordField.requestFocus();
+        } else {
+
+            try {
+                // Se carga el Keystore del PKCS11 con los certificados del DNIe
+                this.libAutDNIe.cargarPKCS11DNIe(pin);
+                this.libAutDNIe.cargarAliasCertificadoAutenticacionDNIe();
+                this.getRFC();
+
+            } catch (final NoSuchAlgorithmException ex) {
+// System.out.println("error ns: " + ex.getMessage());
+                this.lblError.setText(ex.getMessage());
+                this.passwordField.requestFocus();
+            } catch (final CertificateException ex) {
+// System.out.println("error cer: " + ex.getMessage());
+                this.lblError.setText(ex.getMessage());
+                this.passwordField.requestFocus();
+            } catch (final IOException ex) {
+// System.out.println("error io: " + ex.getMessage());
+                this.lblError.setText(ex.getMessage());
+                this.passwordField.requestFocus();
+            } catch (final Exception ex) {
+// System.out.println("error ex: " + ex.getMessage());
+                this.lblError.setText(ex.getMessage());
+                this.passwordField.requestFocus();
+            }
+
+            this.lblError.setText(
+                this.lblError.getText()
+                    .replaceAll("PKCS11 not found", "PKCS11 no hallado"));
+            this.lblError.setText(
+                this.lblError.getText()
+                    .replaceAll("Error parsing configuration",
+                        "Error analizando configuración"));
+        }
+    }
+
+    private void getRFC() {
+        String alias = null;
+
+        try {
+            alias = this.libAutDNIe.cargarAliasCertificadoAutenticacionDNIe();
+        } catch (final Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+        /* Inicialización de los objetos firma y certificado */
+        try {
+            System.out.println("reto " + this.reto);
+            /* Realización de la firma del reto usando el certificado de
+             * autenticación seleccionado por el usuario */
+            this.firma = this.libAutDNIe.autenticacionDNIe(this.reto, alias);
+            System.out.println("firma " + this.firma);
+
+            /* Obtención del certificado de autenticación del usuario */
+            this.certificado = new String(Base64.encode(
+                        this.libAutDNIe.obtenerCertificadoAutenticacionDNIe(
+                            alias)));
+            System.out.println("cerfificado " + this.certificado);
+
+        } catch (final Exception ex) {
+            System.out.println("error: " + ex.getMessage());
+        }
+
+        /* Liberación de los recursos */
+        this.libAutDNIe.liberarAlmacenCertificados();
+    }
+
+    /**
+     * Obtener clave de usuario.
+     *
+     * @return  la clave validada
+     */
+    public String getKey() {
+        return "03797140R";
     }
 }

@@ -16,6 +16,8 @@
   <script language="Javascript">
       //<![CDATA[
       var _app = navigator.appName;
+      var _maxWidth = window.screen.availWidth;
+      var _maxHeight = window.screen.availHeight;
 
       if (_app == 'Netscape') {
         document
@@ -23,6 +25,8 @@
                    'archive="lib/dniEapplet-2.0.0.jar,lib/bcprov-jdk16-143.jar,lib/miglayout-3.7.4.jar"',
                    'width="640"',
                    'height="380"',
+                   'maxwidth="' + _maxWidth + '"',
+                   'maxheight="' + _maxHeigth + '"',
                    'type="application/x-java-applet;version=1.7">');
       } else if (_app == 'Microsoft Internet Explorer') {
         document
@@ -39,6 +43,11 @@
         document.write('<p>Lo siento, navegador ' + _app + ' no soportado</p>');
       }
       //]]>
+    </script>
+    <script language="Javascript">
+    <!--
+      document.write('<p>Resultado: ' + document.applets[0].getKey() + '</p>');
+    //-->
     </script>
   <noscript>
     <div
